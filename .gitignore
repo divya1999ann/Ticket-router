@@ -1,0 +1,26 @@
+# Environments
+venv/
+.venv/
+
+# Secrets — never commit real API tokens
+secrets.env
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Large / generated model & index artifacts (regenerable via notebooks/scripts)
+*.safetensors
+*.faiss
+*.pkl
+models/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editor / OS
+.idea/
+.vscode/
+.claude/
+.DS_Store
