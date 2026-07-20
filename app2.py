@@ -16,9 +16,9 @@ GROQ_TOKEN = os.getenv("GROQ_API_KEY")
 
 from pipeline.stage2a_transformer import load_transformer
 from pipeline.stage2b_retriever   import load_rag_artifacts
-from pipeline.router               import route_ticket
+from pipeline.router               import route_ticket, DEPT_CONF_THRESHOLD, PRIORITY_CONF_THRESHOLD
 from pipeline.ui_helpers import (
-    QueueWrapper, PriorityWrapper, EMPTY,
+    QueueWrapper, PriorityWrapper,
     render_token_heat, ig_explain, pick_top_support_words, occlusion_drop,
     build_dept_radar, build_prio_radar,
     render_routing_card, render_evidence_html, render_explanation_html,
@@ -44,8 +44,8 @@ print(f"✓ All components ready on {device}")
 TAB_KEYS   = ["evidence", "explanation", "attribution", "radar", "sensitivity"]
 EMPTY_HTML = (
     "<div style='display:flex;align-items:center;justify-content:center;"
-    "height:120px;color:#475569;font-size:13px;font-family:IBM Plex Sans,system-ui,sans-serif;"
-    "letter-spacing:.02em;background:#0f172a;border-radius:8px'>"
+    "height:120px;color:#6B5F4B;font-size:13px;font-family:IBM Plex Sans,system-ui,sans-serif;"
+    "letter-spacing:.02em;background:#15120D;border-radius:8px'>"
     "Submit a ticket to see results</div>"
 )
 
@@ -54,76 +54,93 @@ CSS = """
 
 /* ── header ── */
 .app-header {
-    background: linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%) !important;
+    background: linear-gradient(135deg,#15120D 0%,#241C10 50%,#15120D 100%) !important;
     border-radius: 16px !important;
     padding: 22px 30px !important;
     margin-bottom: 18px !important;
     display: flex !important;
     align-items: center !important;
     gap: 18px !important;
-    border: 1px solid rgba(99,102,241,.3) !important;
-    box-shadow: 0 4px 24px rgba(99,102,241,.15), 0 1px 0 rgba(255,255,255,.04) inset !important;
+    border: 1px solid rgba(47,168,156,.3) !important;
+    box-shadow: 0 4px 24px rgba(47,168,156,.15), 0 1px 0 rgba(255,255,255,.04) inset !important;
 }
 .app-header-icon {
     width: 48px !important; height: 48px !important;
-    background: linear-gradient(135deg,#6366f1,#8b5cf6) !important;
+    background: linear-gradient(135deg,#2FA89C,#3FC2AE) !important;
     border-radius: 12px !important;
     display: flex !important; align-items: center !important;
     justify-content: center !important; font-size: 22px !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 4px 14px rgba(99,102,241,.45) !important;
+    box-shadow: 0 4px 14px rgba(47,168,156,.45) !important;
 }
 .app-header h1 {
     margin: 0 !important; font-size: 1.25rem !important;
-    font-weight: 700 !important; color: #f1f5f9 !important;
+    font-weight: 700 !important; color: #F5EEE0 !important;
     letter-spacing: -.025em !important;
     font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
 }
 .app-header p {
     margin: 4px 0 0 !important; font-size: 0.72rem !important;
-    color: #94a3b8 !important;
+    color: #A3947A !important;
     font-family: 'IBM Plex Mono', monospace !important;
     letter-spacing: .03em !important;
 }
 .app-header-badge {
     margin-left: auto !important; flex-shrink: 0 !important;
-    background: rgba(34,197,94,.12) !important;
-    border: 1px solid rgba(34,197,94,.3) !important;
+    background: rgba(95,174,110,.12) !important;
+    border: 1px solid rgba(95,174,110,.3) !important;
     border-radius: 99px !important; padding: 5px 14px !important;
     font-size: 11px !important; font-weight: 700 !important;
-    color: #4ade80 !important;
+    color: #5FAE6E !important;
     font-family: 'IBM Plex Mono', monospace !important;
     letter-spacing: .08em !important;
     display: flex !important; align-items: center !important; gap: 6px !important;
 }
+.app-header-stats {
+    display: flex !important; gap: 8px !important; flex-shrink: 0 !important;
+}
+.stat-chip {
+    display: flex !important; align-items: baseline !important; gap: 6px !important;
+    background: rgba(224,163,57,.08) !important;
+    border: 1px solid rgba(224,163,57,.25) !important;
+    border-radius: 7px !important; padding: 5px 11px !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+.stat-chip .lbl {
+    font-size: 9.5px !important; color: #A3947A !important;
+    text-transform: uppercase !important; letter-spacing: .08em !important;
+}
+.stat-chip b {
+    font-size: 13px !important; color: #E0A339 !important; font-weight: 700 !important;
+}
 
 /* ── chat panel ── */
 .chat-outer {
-    background: #0f172a !important;
-    border: 1px solid #1e293b !important;
+    background: #15120D !important;
+    border: 1px solid #211B14 !important;
     border-radius: 14px !important;
     overflow: hidden !important;
     box-shadow: 0 4px 20px rgba(0,0,0,.3) !important;
     margin-bottom: 0 !important;
 }
 .chat-head {
-    background: #1e293b !important;
+    background: #211B14 !important;
     padding: 11px 18px !important;
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
-    border-bottom: 1px solid #334155 !important;
+    border-bottom: 1px solid #3D3324 !important;
 }
 .chat-head-label {
     font-size: 11px !important; font-weight: 700 !important;
-    color: #64748b !important; letter-spacing: .1em !important;
+    color: #7A6D57 !important; letter-spacing: .1em !important;
     text-transform: uppercase !important;
     font-family: 'IBM Plex Mono', monospace !important;
 }
 .chat-dot {
     width: 7px !important; height: 7px !important;
-    background: #22c55e !important; border-radius: 50% !important;
-    box-shadow: 0 0 8px rgba(34,197,94,.7) !important;
+    background: #5FAE6E !important; border-radius: 50% !important;
+    box-shadow: 0 0 8px rgba(95,174,110,.7) !important;
     animation: blink 2s infinite !important;
 }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
@@ -139,33 +156,33 @@ CSS = """
 }
 .chat-messages::-webkit-scrollbar { width: 3px; }
 .chat-messages::-webkit-scrollbar-track { background: transparent; }
-.chat-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #3D3324; border-radius: 2px; }
 
 .msg-user {
     align-self: flex-end !important;
     max-width: 80% !important;
-    background: linear-gradient(135deg,#4f46e5,#7c3aed) !important;
-    color: #f1f5f9 !important;
+    background: linear-gradient(135deg,#1F7E74,#2FA89C) !important;
+    color: #F5EEE0 !important;
     border-radius: 14px 14px 4px 14px !important;
     padding: 10px 14px !important;
     font-size: 13px !important; line-height: 1.55 !important;
-    box-shadow: 0 3px 10px rgba(79,70,229,.4) !important;
+    box-shadow: 0 3px 10px rgba(31,126,116,.4) !important;
     font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
 }
 .msg-bot {
     align-self: flex-start !important;
     max-width: 88% !important;
-    background: #1e293b !important;
-    color: #cbd5e1 !important;
-    border: 1px solid #334155 !important;
+    background: #211B14 !important;
+    color: #CBBFA5 !important;
+    border: 1px solid #3D3324 !important;
     border-radius: 4px 14px 14px 14px !important;
     padding: 10px 14px !important;
     font-size: 13px !important; line-height: 1.65 !important;
     font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
 }
-.msg-bot strong { color: #e2e8f0 !important; }
+.msg-bot strong { color: #EFE7D8 !important; }
 .msg-bot code {
-    background: #0f172a !important; color: #a5b4fc !important;
+    background: #15120D !important; color: #7FD4C4 !important;
     padding: 1px 6px !important; border-radius: 4px !important;
     font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important;
 }
@@ -173,12 +190,12 @@ CSS = """
     flex: 1 !important;
     display: flex !important; flex-direction: column !important;
     align-items: center !important; justify-content: center !important;
-    gap: 10px !important; color: #334155 !important;
+    gap: 10px !important; color: #3D3324 !important;
     font-size: 13px !important; padding: 20px 0 !important;
     font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
 }
 .chat-empty-state .icon { font-size: 36px !important; opacity: .35 !important; }
-.chat-empty-state .hint { color: #475569 !important; font-size: 12px !important; margin-top: 2px !important; }
+.chat-empty-state .hint { color: #6B5F4B !important; font-size: 12px !important; margin-top: 2px !important; }
 
 /* ── example buttons ── */
 .example-btn {
@@ -186,9 +203,9 @@ CSS = """
     text-align: left !important;
     justify-content: flex-start !important;
     border-radius: 8px !important;
-    background: #1e293b !important;
-    color: #cbd5e1 !important;
-    border: 1px solid #334155 !important;
+    background: #211B14 !important;
+    color: #CBBFA5 !important;
+    border: 1px solid #3D3324 !important;
     font-size: 12px !important;
     padding: 8px 12px !important;
     font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
@@ -198,9 +215,9 @@ CSS = """
     display: block !important;
 }
 .example-btn:hover {
-    background: #273549 !important;
-    border-color: #6366f1 !important;
-    color: #f1f5f9 !important;
+    background: #2E2619 !important;
+    border-color: #2FA89C !important;
+    color: #F5EEE0 !important;
 }
 
 /* ── tab strip ── */
@@ -208,10 +225,10 @@ CSS = """
     display: flex !important; gap: 4px !important;
     margin-bottom: 10px !important;
     flex-wrap: wrap !important;
-    background: #1e293b !important;
+    background: #211B14 !important;
     border-radius: 10px !important;
     padding: 6px !important;
-    border: 1px solid #334155 !important;
+    border: 1px solid #3D3324 !important;
 }
 #tab-strip button {
     border-radius: 7px !important;
@@ -222,19 +239,19 @@ CSS = """
     white-space: nowrap !important;
     font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
     background: transparent !important;
-    color: #94a3b8 !important;
+    color: #A3947A !important;
     border: 1px solid transparent !important;
     transition: all .15s ease !important;
 }
 #tab-strip button:hover {
-    background: #273549 !important;
-    color: #e2e8f0 !important;
+    background: #2E2619 !important;
+    color: #EFE7D8 !important;
 }
 #tab-strip button.primary {
-    background: linear-gradient(135deg,#4f46e5,#7c3aed) !important;
+    background: linear-gradient(135deg,#1F7E74,#2FA89C) !important;
     color: #fff !important;
-    border-color: rgba(99,102,241,.4) !important;
-    box-shadow: 0 2px 8px rgba(99,102,241,.35) !important;
+    border-color: rgba(47,168,156,.4) !important;
+    box-shadow: 0 2px 8px rgba(47,168,156,.35) !important;
 }
 """
 
@@ -293,18 +310,50 @@ def _build_chat_panel(history):
 _EMPTY_CHAT = _build_chat_panel([])
 
 
-with gr.Blocks(css=CSS, title="Support Ticket Router") as demo:
+THEME = gr.themes.Base().set(
+    body_background_fill="#15120D", body_background_fill_dark="#15120D",
+    body_text_color="#F5EEE0", body_text_color_dark="#F5EEE0",
+    body_text_color_subdued="#A3947A", body_text_color_subdued_dark="#A3947A",
+    background_fill_primary="#211B14", background_fill_primary_dark="#211B14",
+    background_fill_secondary="#2E2619", background_fill_secondary_dark="#2E2619",
+    block_background_fill="#211B14", block_background_fill_dark="#211B14",
+    block_border_color="#3D3324", block_border_color_dark="#3D3324",
+    block_label_text_color="#A3947A", block_label_text_color_dark="#A3947A",
+    block_title_text_color="#A3947A", block_title_text_color_dark="#A3947A",
+    border_color_primary="#3D3324", border_color_primary_dark="#3D3324",
+    panel_background_fill="#211B14", panel_background_fill_dark="#211B14",
+    panel_border_color="#3D3324", panel_border_color_dark="#3D3324",
+    accordion_text_color="#F5EEE0", accordion_text_color_dark="#F5EEE0",
+    input_background_fill="#15120D", input_background_fill_dark="#15120D",
+    input_border_color="#3D3324", input_border_color_dark="#3D3324",
+    input_border_color_focus="#2FA89C", input_border_color_focus_dark="#2FA89C",
+    input_placeholder_color="#7A6D57", input_placeholder_color_dark="#7A6D57",
+    button_primary_background_fill="#2FA89C", button_primary_background_fill_dark="#2FA89C",
+    button_primary_background_fill_hover="#3FC2AE", button_primary_background_fill_hover_dark="#3FC2AE",
+    button_primary_text_color="#15120D", button_primary_text_color_dark="#15120D",
+    button_secondary_background_fill="#2E2619", button_secondary_background_fill_dark="#2E2619",
+    button_secondary_background_fill_hover="#3D3324", button_secondary_background_fill_hover_dark="#3D3324",
+    button_secondary_text_color="#F5EEE0", button_secondary_text_color_dark="#F5EEE0",
+    button_secondary_border_color="#3D3324", button_secondary_border_color_dark="#3D3324",
+    link_text_color="#2FA89C", link_text_color_dark="#2FA89C",
+)
+
+with gr.Blocks(theme=THEME, css=CSS, title="Support Ticket Router") as demo:
 
     chat_history = gr.State([])
 
-    gr.HTML("""
+    gr.HTML(f"""
     <div class="app-header">
       <div class="app-header-icon">🎫</div>
       <div>
         <h1>Customer Support Ticket Router</h1>
         <p>DistilBERT · HNSW + BM25 + CrossEncoder RRF · Groq LLaMA-3.3-70b</p>
       </div>
-      <div class="app-header-badge"><span style="width:7px;height:7px;background:#4ade80;border-radius:50%;display:inline-block"></span> LIVE</div>
+      <div class="app-header-stats">
+        <div class="stat-chip"><span class="lbl">Dept gate</span><b>{DEPT_CONF_THRESHOLD:.2f}</b></div>
+        <div class="stat-chip"><span class="lbl">Priority gate</span><b>{PRIORITY_CONF_THRESHOLD:.2f}</b></div>
+      </div>
+      <div class="app-header-badge"><span style="width:7px;height:7px;background:#5FAE6E;border-radius:50%;display:inline-block"></span> LIVE</div>
     </div>
     """)
 
@@ -320,15 +369,15 @@ with gr.Blocks(css=CSS, title="Support Ticket Router") as demo:
             with gr.Row():
                 submit_btn = gr.Button("⚡  Submit Ticket", variant="primary", scale=3)
                 clear_btn  = gr.Button("Clear", variant="secondary", scale=1)
-            gr.Markdown("##### Example tickets", elem_classes=["example-label"])
-            example_btns = []
-            for ex in EXAMPLES:
-                btn = gr.Button(
-                    ex[:72] + ("…" if len(ex) > 72 else ""),
-                    variant="secondary",
-                    elem_classes=["example-btn"],
-                )
-                example_btns.append((btn, ex))
+            with gr.Accordion("Example tickets", open=False):
+                example_btns = []
+                for ex in EXAMPLES:
+                    btn = gr.Button(
+                        ex[:72] + ("…" if len(ex) > 72 else ""),
+                        variant="secondary",
+                        elem_classes=["example-btn"],
+                    )
+                    example_btns.append((btn, ex))
 
         # ── RIGHT column ─────────────────────────────────────────────────────
         with gr.Column(scale=6, min_width=420):
@@ -400,7 +449,7 @@ with gr.Blocks(css=CSS, title="Support Ticket Router") as demo:
         except Exception as e:
             traceback.print_exc()
             history.append({"role": "assistant", "content": f"⚠️ Pipeline error: {e}"})
-            err = f"<div style='color:#ef4444;padding:16px;font-size:13px'>⚠️ {e}</div>"
+            err = f"<div style='color:#E2645A;padding:16px;font-size:13px'>⚠️ {e}</div>"
             return (history, _build_chat_panel(history), err, err, err, err, None, None, err)
 
         history.append({"role": "assistant", "content": render_chat_reply(result)})

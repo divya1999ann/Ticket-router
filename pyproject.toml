@@ -1,0 +1,9 @@
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+# Pyflakes (F) catches real bugs: unused imports/vars, undefined names, etc.
+# E9 catches syntax errors. Deliberately not enabling the full pycodestyle (E/W)
+# style ruleset — this codebase uses a dense, semicolon-chained style throughout
+# (see ui_helpers.py) that predates this config; that's a style choice, not a bug.
+select = ["F", "E9"]

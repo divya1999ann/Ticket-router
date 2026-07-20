@@ -86,7 +86,7 @@ def rewrite_query(raw_text: str, groq_client: Groq) -> str:
         log.debug(f"Tech keywords   : {parsed.get('tech_keywords', [])}")
         log.debug(f"Explanation     : {parsed.get('explanation','')}")
     else:
-        log.warning(f"Stage 1 — JSON parse failed, using cleaned fallback")
+        log.warning("Stage 1 — JSON parse failed, using cleaned fallback")
 
     log.debug(f"Cleaned text: {cleaned[:120]!r}")
     return cleaned

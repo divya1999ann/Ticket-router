@@ -5,9 +5,9 @@ import plotly.graph_objects as go
 from collections import Counter
 
 PE = {"high": "🔴", "medium": "🟡", "low": "🟢"}
-PCOLOR = {"high": "#f87171", "medium": "#fbbf24", "low": "#4ade80"}
-PBG    = {"high": "rgba(248,113,113,.15)", "medium": "rgba(251,191,36,.12)", "low": "rgba(74,222,128,.12)"}
-PBORDER= {"high": "rgba(248,113,113,.35)", "medium": "rgba(251,191,36,.3)", "low": "rgba(74,222,128,.3)"}
+PCOLOR = {"high": "#E2645A", "medium": "#E0A339", "low": "#5FAE6E"}
+PBG    = {"high": "rgba(226,100,90,.15)", "medium": "rgba(224,163,57,.12)", "low": "rgba(95,174,110,.12)"}
+PBORDER= {"high": "rgba(226,100,90,.35)", "medium": "rgba(224,163,57,.3)", "low": "rgba(95,174,110,.3)"}
 EMPTY  = "_(Submit a ticket above to see results)_"
 STOPWORDS = {
     "the","a","an","and","or","but","if","then","when","of","to","in","on",
@@ -19,16 +19,16 @@ STOPWORDS = {
 _FONT_STACK = "IBM Plex Sans,system-ui,-apple-system,sans-serif"
 _MONO_STACK = "IBM Plex Mono,monospace"
 
-_BG0   = "#0f172a"
-_BG1   = "#1e293b"
-_BG2   = "#273549"
-_BORDER= "#334155"
-_TEXT1 = "#f1f5f9"
-_TEXT2 = "#cbd5e1"
-_TEXT3 = "#94a3b8"
-_TEXT4 = "#64748b"
-_ACCENT= "#6366f1"
-_ACCENT2="#8b5cf6"
+_BG0   = "#15120D"
+_BG1   = "#211B14"
+_BG2   = "#2E2619"
+_BORDER= "#3D3324"
+_TEXT1 = "#F5EEE0"
+_TEXT2 = "#CBBFA5"
+_TEXT3 = "#A3947A"
+_TEXT4 = "#7A6D57"
+_ACCENT= "#2FA89C"
+_ACCENT2="#3FC2AE"
 
 
 def _wrap(inner):
@@ -156,11 +156,11 @@ def _rgba(x):
     x = max(-1.0, min(1.0, float(x)))
     if x >= 0:
         a = 0.15 + 0.45 * x
-        return f"rgba(99,102,241,{a:.3f})"
+        return f"rgba(47,168,156,{a:.3f})"
     else:
         x = -x
         a = 0.15 + 0.45 * x
-        return f"rgba(239,68,68,{a:.3f})"
+        return f"rgba(226,100,90,{a:.3f})"
 
 def render_token_heat(tokens_scores, title, subtitle=None, max_tokens=80):
     chips = "".join(
@@ -264,9 +264,9 @@ def build_dept_radar(result):
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(
         r=tc, theta=lc, fill="toself", name="Transformer",
-        line=dict(color="#818cf8", width=2.5),
-        fillcolor="rgba(99,102,241,0.18)",
-        marker=dict(size=6, color="#6366f1", symbol="circle"),
+        line=dict(color="#5FC2B4", width=2.5),
+        fillcolor="rgba(47,168,156,0.18)",
+        marker=dict(size=6, color="#2FA89C", symbol="circle"),
     ))
     # Only add RAG trace if RAG was actually invoked
     if getattr(result, "rag_used", False) and result.rag_chunks:
@@ -279,9 +279,9 @@ def build_dept_radar(result):
         rc = r_vals + r_vals[:1]
         fig.add_trace(go.Scatterpolar(
             r=rc, theta=lc, fill="toself", name="RAG vote",
-            line=dict(color="#fb923c", width=2.5),
-            fillcolor="rgba(251,146,60,0.12)",
-            marker=dict(size=6, color="#f97316", symbol="diamond"),
+            line=dict(color="#E0A339", width=2.5),
+            fillcolor="rgba(224,163,57,0.12)",
+            marker=dict(size=6, color="#C4841F", symbol="diamond"),
         ))
         radial_max = max(tc + rc) * 1.2 or 1
         title_text = "Department Signal Comparison"
@@ -293,21 +293,21 @@ def build_dept_radar(result):
             radialaxis=dict(
                 visible=True, range=[0, radial_max],
                 gridcolor="rgba(255,255,255,.08)", linecolor="rgba(255,255,255,.08)",
-                tickfont=dict(size=9, color="#64748b"), tickformat=".0%",
+                tickfont=dict(size=9, color="#7A6D57"), tickformat=".0%",
             ),
             angularaxis=dict(
-                tickfont=dict(size=11, color="#94a3b8", family="IBM Plex Sans, system-ui"),
+                tickfont=dict(size=11, color="#A3947A", family="IBM Plex Sans, system-ui"),
                 linecolor="rgba(255,255,255,.1)", gridcolor="rgba(255,255,255,.06)",
             ),
-            bgcolor="#0f172a",
+            bgcolor="#15120D",
         ),
         showlegend=True, margin=dict(l=28, r=28, t=56, b=24), height=380,
         title=dict(text=title_text,
-                   font=dict(size=13, color="#e2e8f0", family="IBM Plex Sans, system-ui"), x=0.5),
-        paper_bgcolor="#0f172a", plot_bgcolor="#0f172a",
-        font=dict(family="IBM Plex Sans, system-ui", color="#94a3b8"),
-        legend=dict(font=dict(size=11, color="#94a3b8", family="IBM Plex Sans"),
-                    bgcolor="rgba(30,41,59,.8)", bordercolor="rgba(255,255,255,.08)", borderwidth=1,
+                   font=dict(size=13, color="#EFE7D8", family="IBM Plex Sans, system-ui"), x=0.5),
+        paper_bgcolor="#15120D", plot_bgcolor="#15120D",
+        font=dict(family="IBM Plex Sans, system-ui", color="#A3947A"),
+        legend=dict(font=dict(size=11, color="#A3947A", family="IBM Plex Sans"),
+                    bgcolor="rgba(33,27,20,.85)", bordercolor="rgba(255,255,255,.08)", borderwidth=1,
                     x=0.5, xanchor="center", y=-0.05, orientation="h"),
     )
     return fig
@@ -319,9 +319,9 @@ def build_prio_radar(result):
     lc = labels + labels[:1]
     vc = vals + vals[:1]
     prio = result.priority.lower() if hasattr(result, "priority") else "medium"
-    line_color = {"high": "#f87171", "medium": "#fbbf24", "low": "#4ade80"}.get(prio, "#818cf8")
-    fill_color = {"high": "rgba(248,113,113,0.18)", "medium": "rgba(251,191,36,0.15)",
-                  "low": "rgba(74,222,128,0.15)"}.get(prio, "rgba(99,102,241,0.18)")
+    line_color = {"high": "#E2645A", "medium": "#E0A339", "low": "#5FAE6E"}.get(prio, "#5FC2B4")
+    fill_color = {"high": "rgba(226,100,90,0.18)", "medium": "rgba(224,163,57,0.15)",
+                  "low": "rgba(95,174,110,0.15)"}.get(prio, "rgba(47,168,156,0.18)")
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(
         r=vc, theta=lc, fill="toself", name="Priority",
@@ -332,16 +332,16 @@ def build_prio_radar(result):
         polar=dict(
             radialaxis=dict(visible=True, range=[0, max(vc) * 1.2 or 1],
                             gridcolor="rgba(255,255,255,.08)", linecolor="rgba(255,255,255,.08)",
-                            tickfont=dict(size=9, color="#64748b"), tickformat=".0%"),
-            angularaxis=dict(tickfont=dict(size=13, color="#94a3b8", family="IBM Plex Sans, system-ui"),
+                            tickfont=dict(size=9, color="#7A6D57"), tickformat=".0%"),
+            angularaxis=dict(tickfont=dict(size=13, color="#A3947A", family="IBM Plex Sans, system-ui"),
                              linecolor="rgba(255,255,255,.1)", gridcolor="rgba(255,255,255,.06)"),
-            bgcolor="#0f172a",
+            bgcolor="#15120D",
         ),
         showlegend=False, margin=dict(l=28, r=28, t=56, b=24), height=340,
         title=dict(text="Priority Signal Distribution",
-                   font=dict(size=13, color="#e2e8f0", family="IBM Plex Sans, system-ui"), x=0.5),
-        paper_bgcolor="#0f172a", plot_bgcolor="#0f172a",
-        font=dict(family="IBM Plex Sans, system-ui", color="#94a3b8"),
+                   font=dict(size=13, color="#EFE7D8", family="IBM Plex Sans, system-ui"), x=0.5),
+        paper_bgcolor="#15120D", plot_bgcolor="#15120D",
+        font=dict(family="IBM Plex Sans, system-ui", color="#A3947A"),
     )
     return fig
 
@@ -350,8 +350,8 @@ def render_routing_card(r):
     agree    = r.transformer_dept == r.department
     prio     = r.priority.lower()
     pc       = PCOLOR.get(prio, _TEXT3)
-    pbg      = PBG.get(prio, "rgba(99,102,241,.12)")
-    pbd      = PBORDER.get(prio, "rgba(99,102,241,.3)")
+    pbg      = PBG.get(prio, "rgba(47,168,156,.12)")
+    pbd      = PBORDER.get(prio, "rgba(47,168,156,.3)")
     rag_used = getattr(r, "rag_used", True)
     rag_reason = getattr(r, "rag_reason", "")
 
@@ -368,8 +368,8 @@ def render_routing_card(r):
 
     dept_tick  = "✓" if r.transformer_conf >= 0.85 else "✗"
     prio_tick  = "✓" if priority_conf >= 0.60 else "✗"
-    dept_color = "#4ade80" if r.transformer_conf >= 0.85 else "#f87171"
-    prio_color = "#4ade80" if priority_conf >= 0.60 else "#f87171"
+    dept_color = "#5FAE6E" if r.transformer_conf >= 0.85 else "#E2645A"
+    prio_color = "#5FAE6E" if priority_conf >= 0.60 else "#E2645A"
 
     conf_box = _stat_box(
         "Transformer confidence",
@@ -396,8 +396,8 @@ def render_routing_card(r):
         path_html = (
             f'<div style="display:flex!important;align-items:flex-start!important;gap:8px!important;'
             f'padding:9px 14px!important;border-radius:8px!important;font-size:13px!important;'
-            f'font-weight:500!important;background:rgba(74,222,128,.1)!important;'
-            f'color:#4ade80!important;border:1px solid rgba(74,222,128,.25)!important;'
+            f'font-weight:500!important;background:rgba(95,174,110,.1)!important;'
+            f'color:#5FAE6E!important;border:1px solid rgba(95,174,110,.25)!important;'
             f'margin-bottom:8px!important;flex-direction:column!important">'
             f'<span>⚡ Fast path — transformer only (dept + priority both confident)</span>'
             f'<span style="font-size:11px!important;font-weight:400!important;'
@@ -408,12 +408,12 @@ def render_routing_card(r):
     else:
         if dept_passed:
             dept_note = (
-                f'<span style="color:#4ade80!important">✓ Dept {r.transformer_conf*100:.1f}% ≥ 85% — '
+                f'<span style="color:#5FAE6E!important">✓ Dept {r.transformer_conf*100:.1f}% ≥ 85% — '
                 f'transformer confident, used directly (dept retrieval skipped)</span>'
             )
         else:
             dept_note = (
-                    f'<span style="color:#fbbf24!important">✗ Dept {r.transformer_conf*100:.1f}% &lt; 85% — '
+                    f'<span style="color:#E0A339!important">✗ Dept {r.transformer_conf*100:.1f}% &lt; 85% — '
                     f'transformer uncertain, dept decided by RAG CrossEncoder'
                     + (f' (overrides transformer: {r.transformer_dept})' if not agree else '')
                     + '</span>'
@@ -421,12 +421,12 @@ def render_routing_card(r):
 
         if prio_passed:
             prio_note = (
-                f'<span style="color:#4ade80!important">✓ Priority {priority_conf*100:.1f}% ≥ 60% — '
+                f'<span style="color:#5FAE6E!important">✓ Priority {priority_conf*100:.1f}% ≥ 60% — '
                 f'transformer confident, used directly (priority retrieval skipped)</span>'
             )
         else:
             prio_note = (
-                f'<span style="color:#f87171!important">✗ Priority {priority_conf*100:.1f}% &lt; 60% — '
+                f'<span style="color:#E2645A!important">✗ Priority {priority_conf*100:.1f}% &lt; 60% — '
                 f'transformer uncertain, LLM applied escalation criteria</span>'
             )
 
@@ -440,10 +440,10 @@ def render_routing_card(r):
         path_html = (
             f'<div style="display:flex!important;align-items:flex-start!important;'
             f'padding:10px 14px!important;border-radius:8px!important;font-size:12px!important;'
-            f'background:rgba(251,191,36,.08)!important;'
-            f'border:1px solid rgba(251,191,36,.2)!important;'
+            f'background:rgba(224,163,57,.08)!important;'
+            f'border:1px solid rgba(224,163,57,.2)!important;'
             f'margin-bottom:8px!important;flex-direction:column!important;gap:6px!important">'
-            f'<span style="font-size:13px!important;font-weight:600!important;color:#fbbf24!important">'
+            f'<span style="font-size:13px!important;font-weight:600!important;color:#E0A339!important">'
             f'{headline}</span>'
             f'<span style="font-family:monospace!important;color:{_TEXT3}!important;font-size:11px!important">'
             f'{rag_reason}</span>'
@@ -482,8 +482,8 @@ def render_evidence_html(r):
         if is_final:
             tag = _tag("FINAL", _ACCENT, "#fff")
         elif is_trans:
-            tag = _tag("transformer", "rgba(99,102,241,.25)", "#a5b4fc")
-        color = _ACCENT if is_final else "#818cf8" if is_trans else _BORDER
+            tag = _tag("transformer", "rgba(47,168,156,.25)", "#7FD4C4")
+        color = _ACCENT if is_final else "#5FC2B4" if is_trans else _BORDER
         dept_bars += _bar_row(item["dept"], item["prob"], color, tag)
 
     probs = r.priority_probs if hasattr(r, "priority_probs") else {}
@@ -522,7 +522,7 @@ def render_evidence_html(r):
         rag_html = ""
         for i, item in enumerate(r.rag_chunks, 1):
             chunk = item["chunk"]
-            score_color = "#4ade80" if item["ce_score"] > 0 else "#fbbf24"
+            score_color = "#5FAE6E" if item["ce_score"] > 0 else "#E0A339"
             body = _extract_body(chunk["raw_body"])
             section_label = _clean_section(chunk["section"])
             rag_html += _card(
@@ -549,7 +549,7 @@ def render_evidence_html(r):
                 f'<div style="display:flex!important;justify-content:space-between!important;'
                 f'align-items:flex-start!important;margin-bottom:6px!important">'
                 f'<div><div style="font-size:13px!important;font-weight:600!important;'
-                f'color:#a5b4fc!important">Priority Rule</div>'
+                f'color:#7FD4C4!important">Priority Rule</div>'
                 f'<div style="font-size:11px!important;color:{_TEXT4}!important;'
                 f'font-family:monospace!important;margin-top:2px!important">{p_section_label}</div></div>'
                 f'<span style="font-size:11px!important;font-weight:700!important;padding:2px 8px!important;'
@@ -557,9 +557,9 @@ def render_evidence_html(r):
                 f'white-space:nowrap!important;flex-shrink:0!important;margin-left:8px!important">'
                 f'CE {r.priority_chunk["ce_score"]:.3f}</span></div>'
                 f'<div style="font-size:12px!important;color:{_TEXT3}!important;line-height:1.6!important;'
-                f'border-left:2px solid rgba(165,180,252,.4)!important;padding-left:10px!important">'
+                f'border-left:2px solid rgba(127,212,196,.4)!important;padding-left:10px!important">'
                 f'{body}…</div>',
-                border_color="rgba(165,180,252,.3)", bg=_BG1
+                border_color="rgba(127,212,196,.3)", bg=_BG1
             )
 
         dept_scores = {}
@@ -591,14 +591,12 @@ def render_explanation_html(r):
 
     def mono(t):
         return (f'<span style="display:inline-block!important;font-family:{_MONO_STACK}!important;'
-                f'font-size:11px!important;background:{_BG2}!important;color:#a5b4fc!important;'
+                f'font-size:11px!important;background:{_BG2}!important;color:#7FD4C4!important;'
                 f'padding:2px 6px!important;border-radius:4px!important;margin:1px!important">{t}</span>')
 
     def note(t, color=_TEXT4):
         return (f'<span style="font-size:10px!important;color:{color}!important;'
                 f'font-style:italic!important;margin-left:4px!important">{t}</span>')
-
-    top3_html = " ".join(mono(f'{x["dept"]} {x["prob"]:.1%}') for x in r.transformer_top3)
 
     if rag_used:
         dept_passed = r.transformer_conf >= 0.85
@@ -606,29 +604,29 @@ def render_explanation_html(r):
         rag_top_chunk = r.rag_chunks[0] if r.rag_chunks else None
         rag_top = (
             mono(f'{rag_top_chunk["chunk"]["dept"]} CE={rag_top_chunk["ce_score"]:.3f}')
-            + note("→ dept source", "#4ade80")
+            + note("→ dept source", "#5FAE6E")
             if rag_top_chunk else
             f'<span style="color:{_TEXT4}!important">skipped — dept was confident</span>'
         )
         dept_decided = (
-            mono(r.department) + note("transformer direct — dept confident, retrieval skipped", "#4ade80")
+            mono(r.department) + note("transformer direct — dept confident, retrieval skipped", "#5FAE6E")
             if dept_passed else
-            mono(r.department) + note("from CrossEncoder top chunk", "#4ade80")
+            mono(r.department) + note("from CrossEncoder top chunk", "#5FAE6E")
         )
         prio_decided = (
-            mono(r.priority) + note("transformer direct — priority confident, LLM skipped", "#4ade80")
+            mono(r.priority) + note("transformer direct — priority confident, LLM skipped", "#5FAE6E")
             if prio_passed else
-            mono(r.priority) + mono(f"conf={r.confidence}") + note(f"LLM applied escalation criteria (priority {priority_conf*100:.1f}% < 60% threshold)", "#fb923c")
+            mono(r.priority) + mono(f"conf={r.confidence}") + note(f"LLM applied escalation criteria (priority {priority_conf*100:.1f}% < 60% threshold)", "#E0A339")
         )
         prio_chunk_val = (
-            mono(f'CE={r.priority_chunk["ce_score"]:.3f}') + note(f'section={r.priority_chunk["chunk"]["section"]}', "#fb923c")
+            mono(f'CE={r.priority_chunk["ce_score"]:.3f}') + note(f'section={r.priority_chunk["chunk"]["section"]}', "#E0A339")
             if r.priority_chunk else
             f'<span style="color:{_TEXT4}!important">skipped — priority was confident</span>'
         )
         rows = [
-            ("Stage 1",  "Groq rewrite",        f'<span style="color:#4ade80!important">✅ cleaned</span>'),
-            ("Stage 2a", "Transformer dept",     mono(f'{r.transformer_dept} {r.transformer_conf*100:.1f}%') + note("✓ confident — retrieval skipped" if dept_passed else "✗ uncertain — RAG triggered", "#4ade80" if dept_passed else "#f87171")),
-            ("Stage 2a", "Transformer priority", mono(f'{r.priority} {priority_conf*100:.1f}%') + note("✓ confident — LLM skipped" if prio_passed else "✗ uncertain — LLM needed", "#4ade80" if prio_passed else "#f87171")),
+            ("Stage 1",  "Groq rewrite",        '<span style="color:#5FAE6E!important">✅ cleaned</span>'),
+            ("Stage 2a", "Transformer dept",     mono(f'{r.transformer_dept} {r.transformer_conf*100:.1f}%') + note("✓ confident — retrieval skipped" if dept_passed else "✗ uncertain — RAG triggered", "#5FAE6E" if dept_passed else "#E2645A")),
+            ("Stage 2a", "Transformer priority", mono(f'{r.priority} {priority_conf*100:.1f}%') + note("✓ confident — LLM skipped" if prio_passed else "✗ uncertain — LLM needed", "#5FAE6E" if prio_passed else "#E2645A")),
             ("Stage 2b", "Dept RAG chunks",      rag_top),
             ("Stage 2b", "Priority chunk",       prio_chunk_val),
             ("Stage 3",  "Dept decision",        dept_decided),
@@ -636,11 +634,11 @@ def render_explanation_html(r):
         ]
     else:
         rows = [
-            ("Stage 1",  "Groq rewrite",        f'<span style="color:#4ade80!important">✅ cleaned</span>'),
-            ("Stage 2a", "Transformer dept",     mono(f'{r.transformer_dept} {r.transformer_conf*100:.1f}%') + note("✓ confident — no RAG needed", "#4ade80")),
-            ("Stage 2a", "Transformer priority", mono(f'{r.priority} {priority_conf*100:.1f}%') + note("✓ confident — no LLM needed", "#4ade80")),
-            ("Stage 2b", "RAG",                  f'<span style="color:#4ade80!important">⚡ skipped — both thresholds met</span>'),
-            ("Stage 3",  "LLM",                  f'<span style="color:#4ade80!important">⚡ skipped — transformer used directly</span>'),
+            ("Stage 1",  "Groq rewrite",        '<span style="color:#5FAE6E!important">✅ cleaned</span>'),
+            ("Stage 2a", "Transformer dept",     mono(f'{r.transformer_dept} {r.transformer_conf*100:.1f}%') + note("✓ confident — no RAG needed", "#5FAE6E")),
+            ("Stage 2a", "Transformer priority", mono(f'{r.priority} {priority_conf*100:.1f}%') + note("✓ confident — no LLM needed", "#5FAE6E")),
+            ("Stage 2b", "RAG",                  '<span style="color:#5FAE6E!important">⚡ skipped — both thresholds met</span>'),
+            ("Stage 3",  "LLM",                  '<span style="color:#5FAE6E!important">⚡ skipped — transformer used directly</span>'),
         ]
 
     def th(t):
@@ -704,12 +702,12 @@ def render_attribution_html(queue_html, prio_html, occl_rows):
             pdrop = rep["prio_drop"]
             pnew  = rep["new_prio_conf"]
             w = (f'<span style="font-family:{_MONO_STACK}!important;background:{_BG2}!important;'
-                 f'color:#a5b4fc!important;padding:1px 6px!important;border-radius:4px!important">{word}</span>')
+                 f'color:#7FD4C4!important;padding:1px 6px!important;border-radius:4px!important">{word}</span>')
             return (
                     f'<tr>{td_o(w)}'
-                    + td_o(f"-{qdrop:.1%}", "#f87171")
+                    + td_o(f"-{qdrop:.1%}", "#E2645A")
                     + td_o(f"{qnew:.1%}")
-                    + td_o(f"-{pdrop:.1%}", "#f87171")
+                    + td_o(f"-{pdrop:.1%}", "#E2645A")
                     + td_o(f"{pnew:.1%}")
                     + "</tr>"
             )
@@ -742,11 +740,11 @@ def render_sensitivity_html(r, support_words):
                 f'font-weight:500!important;background:{bg}!important;color:{color}!important;'
                 f'font-family:{_MONO_STACK}!important">{w}</span>')
 
-    support_pills = "".join(pill(w, "rgba(99,102,241,.25)", "#a5b4fc") for w in support_words) \
+    support_pills = "".join(pill(w, "rgba(47,168,156,.25)", "#7FD4C4") for w in support_words) \
                     or f'<span style="color:{_TEXT4}!important;font-size:13px!important">None identified</span>'
 
     if rag_used and comp_kw:
-        comp_pills = "".join(pill(w, "rgba(251,191,36,.15)", "#fbbf24") for w in comp_kw[:5])
+        comp_pills = "".join(pill(w, "rgba(224,163,57,.15)", "#E0A339") for w in comp_kw[:5])
     else:
         comp_pills = (
             f'<span style="color:{_TEXT4}!important;font-size:13px!important">'

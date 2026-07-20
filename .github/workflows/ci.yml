@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-compile:
+    name: Lint & compile-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # ruff and py_compile are both static checks — neither needs the ML
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint (pyflakes rules — real bugs, not style)
+        run: ruff check app2.py pipeline/ scripts/
+
+      - name: Compile-check
+        run: python -m py_compile app2.py pipeline/*.py scripts/*.py
+
+  docker-build:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    needs: lint-and-compile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Builds the real image with the full dependency chain (torch, faiss,
+      # transformers, sentence-transformers) — this is what actually proves
+      # requirements.txt + Dockerfile still resolve together. Not pushed here;
+      # see docker-publish.yml for the on-merge publish step.
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: ticket-router:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

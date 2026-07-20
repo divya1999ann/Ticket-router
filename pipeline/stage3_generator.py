@@ -3,7 +3,6 @@ Stage 3 — LLM Generation
 """
 
 import json, re
-from groq import Groq
 from pipeline.logger import get_logger
 
 log = get_logger("stage3.generator")

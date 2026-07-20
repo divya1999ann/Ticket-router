@@ -1,0 +1,21 @@
+venv/
+.venv/
+.git/
+.github/
+__pycache__/
+*.pyc
+.claude/
+.idea/
+.vscode/
+.DS_Store
+secrets.env
+
+# Not needed to run app2.py — only used by notebooks/scripts, kept out of the build context
+notebooks/
+scripts/
+data/
+outputs/
+rag_artifacts_v2/
+dept_priority_definition_docs/
+
+*.md

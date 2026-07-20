@@ -1,1 +1,1 @@
-from .router import route_ticket, RoutingResult
+from .router import route_ticket as route_ticket, RoutingResult as RoutingResult

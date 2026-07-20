@@ -1,0 +1,7 @@
+services:
+  ticket-router:
+    build: .
+    ports:
+      - "7860:7860"
+    env_file:
+      - secrets.env

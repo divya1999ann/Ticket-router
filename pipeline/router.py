@@ -97,7 +97,7 @@ def route_ticket(raw_text, groq_client,
         log.info("─" * 60)
         log.info(f"FINAL → dept      : {transformer_result['dept']}")
         log.info(f"FINAL → priority  : {transformer_result['priority']}")
-        log.info(f"FINAL → confidence: high (transformer direct)")
+        log.info("FINAL → confidence: high (transformer direct)")
         log.info("─" * 60)
 
         return RoutingResult(

@@ -5,7 +5,6 @@ Stage 2b — Hybrid RAG Retrieval
 import re, pickle
 import numpy as np
 import faiss
-from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from huggingface_hub import hf_hub_download
 from pipeline.logger import get_logger
