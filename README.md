@@ -10,7 +10,6 @@ An intelligent ticket routing system that classifies incoming customer support t
 - [Architecture](#architecture)
 - [Pipeline Stages](#pipeline-stages)
 - [Confidence-Gated Routing](#confidence-gated-routing)
-- [Design Decisions and Justifications](#design-decisions-and-justifications)
 - [Explainability UI](#explainability-ui)
 - [Data and Models](#data-and-models)
 - [Setup and Running](#setup-and-running)
@@ -154,20 +153,6 @@ Only invoked when at least one confidence threshold is not met. Two completely i
 2. CrossEncoder reranks the 3 candidates
 3. Best match returned
 
-**Why `all-MiniLM-L6-v2` instead of the DistilBERT encoder?**
-
-The DistilBERT encoder was fine-tuned on ticket data, giving it a vector space shaped around ticket language. Dept definition docs and priority escalation criteria are written in policy language : a structurally different domain. Using the ticket encoder to embed policy docs creates a domain mismatch that degrades retrieval quality.
-
-`all-MiniLM-L6-v2` was trained specifically for semantic similarity and retrieval tasks, making it domain-agnostic and far better suited to cross-domain matching between a ticket query and a policy document.
-
-**Why separate FAISS indexes for dept and priority?**
-
-If they shared one index, a priority chunk might rank higher than a dept chunk for a given ticket (e.g. an urgent billing ticket retrieves the HIGH priority criteria chunk instead of the billing department definition). Separating the indexes guarantees the dept retrieval always returns dept definition chunks and the priority retrieval always returns escalation criteria : they cannot crowd each other out.
-
-**Why BM25 alongside FAISS?**
-
-Semantic search (FAISS) handles paraphrase and vocabulary mismatch : a ticket saying "the app keeps crashing" can retrieve a chunk about "software failures" even without exact keyword overlap. BM25 handles precise terminology : department-specific jargon like "SLA breach" or "chargeback" will always score highly regardless of whether the embedding captures the full semantics. RRF fusion gets the best of both. CrossEncoder reranking then applies a more expensive but more accurate relevance model on the fused candidate set.
-
 ---
 
 ### Stage 3 : LLM Priority Resolution (`pipeline/stage3_generator.py`)
@@ -212,35 +197,6 @@ Each signal is evaluated independently. RAG is only invoked for the signal that 
 The transformer is fast, cheap, and accurate on clear-cut tickets. RAG (FAISS + BM25 + CrossEncoder) and an LLM call are expensive. Running them unconditionally wastes compute on tickets where the transformer is already 97% confident. More importantly, forcing an LLM to arbitrate between a confident transformer prediction and a RAG signal that agrees with it adds latency and non-determinism without improving accuracy.
 
 By gating on confidence, RAG is deployed precisely where it adds value : ambiguous tickets where the transformer's pattern-matching is insufficient and grounding in policy definitions or escalation criteria is needed.
-
----
-
-## Design Decisions and Justifications
-
-### Why keep the transformer at all if we have RAG?
-
-The transformer and RAG serve different functions. The transformer's classification head was trained on labelled ticket data : it learned the statistical patterns in how customers describe billing issues, technical problems, returns, etc. The RAG retriever finds policy chunks that are semantically related to the ticket. These are different signals: one is trained on outcomes, the other is grounded in policy text.
-
-On the fast path (85%+ confident), the transformer is more reliable than RAG because retrieval quality depends on the embedding model's ability to match ticket language to policy language : an imperfect process. On the slow path (uncertain), the policy grounding from RAG compensates for the transformer's weakness on edge cases.
-
-
-`all-MiniLM-L6-v2` was trained on a large corpus of sentence pairs for semantic similarity, making it domain-agnostic and far better suited to cross-domain retrieval. The DistilBERT encoder is now used only for classification.
-
-### Why is department routing deterministic (CrossEncoder) but priority requires an LLM?
-
-Department routing from dept definition docs is a matching problem : find which department's definition best describes this ticket. The CrossEncoder already applies a relevance model and the top-ranked result is reliably the right answer. No reasoning required.
-
-Priority assignment from escalation criteria is an application problem : read the criteria and decide if they apply to this specific situation. "Revenue is actively being lost" needs to be matched against a specific ticket's context to decide if it qualifies as HIGH. That is a reasoning task where an LLM's language understanding is the right tool.
-### Why the priority threshold needed empirical calibration, not just intuition
-The original reasoning behind 0.60 — that the priority head's confidence naturally sits lower than department's because a 3-class head spreads probability mass across fewer options — is correct as a *relative* observation. But on its own, that only describes where confidence values tend to cluster; it says nothing about whether trusting a prediction at that level is actually reliable. A threshold "close to where confidence tends to sit" is not the same as a threshold that's "usually right when trusted."
-
-Calibrating against measured accuracy — not just the shape of the confidence distribution — is what determined 0.81 (see the Confidence-Gated Routing section above for the full sweep). It's also why department's 0.85 didn't need to move: that same calibration exercise independently confirmed it was already reliable (91.5% accuracy at n=588), so the original intuition happened to land in the right place for department even though it was never checked either — priority's intuition did not.
-### Why Stage 3 (LLM) is still justified at this threshold rather than reading the priority chunk label directly
-The priority escalation criteria document contains rules like "route as HIGH when revenue is actively being lost" or "route as MEDIUM when a single user is affected". These are natural language criteria that require applying judgment to a specific ticket. The CrossEncoder retrieves the most relevant priority section (HIGH/MEDIUM/LOW), but retrieval relevance is not the same as criteria applicability : a ticket about a duplicate charge might retrieve the HIGH section because of keyword overlap with financial loss language, even if the actual charge amount is small and the situation is not urgent.
-The LLM's role is to read the ticket and ask: do these criteria actually apply here? That is a reasoning task : reading a rule and deciding if a specific situation satisfies it : which is exactly what LLMs are trained to do well. It is not a classification task (transformer's strength) or a retrieval task (CrossEncoder's strength). The three components are each doing the job they are best suited for
-### Why two separate priority and dept FAISS indexes?
-
-Priority chunks (HIGH/MEDIUM/LOW sections of the escalation criteria doc) and dept definition chunks serve completely different retrieval purposes. Mixing them in one index would cause them to compete : for an urgent billing ticket, the HIGH priority criteria chunk might outscore the billing dept definition chunk, leaving the LLM with 3 priority chunks and 1 dept chunk instead of the intended 4 dept chunks and 1 priority chunk. Separating them guarantees each retrieval slot is filled by the right type of document.
 
 ---
 
